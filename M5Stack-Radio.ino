@@ -27,7 +27,24 @@ String wifiConfig = String ("/wifi.config");
 // PASSWORD:_here_
 
 // 2 do - put link into the external file
-const char *URL = "http://ice.creacast.com/sudradio";
+char *URL = "http://ice.creacast.com/sudradio";
+
+char BannerText[] = "^WSimple online radio by ^R5^W0u15pec7a70r ^B/^G/^Y/^G/^B/ ^Whttp://ice.creacast.com/sudradio ^B/^G/^Y/^G/^B/ "; // ^W - white, red, green, blue, yellow
+int displayLen = 52;
+unsigned long Frame = 120;
+unsigned long nextFrame = millis() + Frame;
+uint16_t BUFFERCOLOR = WHITE;
+
+int spriteX = 320;
+int spriteY = 20;
+int text1Width = 52; //53
+int font1Width = 6;
+
+char *noWIFIText = " no wi-fi connection ";
+char *noSTREAMINGText = " no streaming ";
+char *SDErrorText = " SD card error ";
+char *noSDErrorText = " SD card is missed ";
+char *WIFIReadingErrorText = " wifi.config reading error ";
 
 AudioGeneratorMP3 *mp3;
 AudioFileSourceICYStream *file;
@@ -97,7 +114,7 @@ void drawVolumeMeter() {
 }
 
 void showVolumeStatus() {
-  Disbuff.createSprite(320, 20);
+  Disbuff.createSprite(spriteX, spriteY);
   Disbuff.fillScreen(BLACK);
   Disbuff.setTextSize(2);
 
@@ -168,7 +185,7 @@ void drawVolumeUpM() {
 }
 
 void showStatus() {
-  Disbuff.createSprite(320, 10);
+  Disbuff.createSprite(spriteX, spriteY);
   Disbuff.fillScreen(BLACK);
   Disbuff.setTextSize(1);
 
@@ -194,43 +211,124 @@ void showStatus() {
   Disbuff.deleteSprite();
 }
 
-void drawTITLE() {
-  M5.Lcd.setTextSize(1);
-  M5.Lcd.setCursor(50, 0);
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("((");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print("(");
-  M5.Lcd.setTextColor(0x4228);
-  M5.Lcd.print(" online radio by 50u15pec7a70r ");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print(")");
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("))");
+void drawBanner() {
+  Disbuff.createSprite(spriteX, spriteY);
+  Disbuff.fillScreen(BLACK);
+  Disbuff.setTextSize(1);
+  Disbuff.setTextColor(BUFFERCOLOR);
 
-  M5.Lcd.setCursor(100, 100);
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("((");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print("(");
-  M5.Lcd.setTextColor(BLUE);
-  M5.Lcd.print(" Sud");
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("Radio");
-  M5.Lcd.setTextColor(RED);
-  M5.Lcd.print(".fr ");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print(")");
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("))");
+  char firstChar;
+  char secondChar;
+  char thirdChar;
+  bool foundSpecial = false;
+  int i = 0;
+
+  if ((BannerText[0] == '^') and ((BannerText[1] == 'W') or (BannerText[1] == 'R') or (BannerText[1] == 'G') or (BannerText[1] == 'B') or (BannerText[1] == 'Y'))) {
+    firstChar = BannerText[0];
+    secondChar = BannerText[1];
+    thirdChar = BannerText[2];
+    foundSpecial = true;
+  } else {
+    firstChar = BannerText[0];
+  }
+  
+  while (i < (strlen(BannerText)-1)){
+    if (foundSpecial){
+      if ((i+3) < strlen(BannerText)) {
+        BannerText[i] = BannerText[i+3];
+      }
+    } else {
+      BannerText[i] = BannerText[i+1];
+    }
+    i++;
+  }
+
+  if (foundSpecial){
+    BannerText[strlen(BannerText)-3] = firstChar;
+    BannerText[strlen(BannerText)-2] = secondChar;
+    BannerText[strlen(BannerText)-1] = thirdChar;
+  } else {
+    BannerText[strlen(BannerText)-1] = firstChar;
+  }
+
+  i = 0;
+  int yCoord = 5; // Y start position
+  int prnTMP = 0; // printing position
+
+  while (prnTMP <= displayLen) {
+
+    if ((BannerText[i] == '^') and (BannerText[i+1] == 'W')) {
+      Disbuff.setTextColor(WHITE);
+      if (prnTMP == 0) {
+        BUFFERCOLOR = WHITE;
+      }
+      i++;
+      i++;
+      if (i>=strlen(BannerText)) {
+        i = 0;
+      }
+    } else if ((BannerText[i] == '^') and (BannerText[i+1] == 'R')) {
+      Disbuff.setTextColor(RED);
+      if (prnTMP == 0) {
+        BUFFERCOLOR = RED;
+      }
+      i++;
+      i++;
+      if (i>=strlen(BannerText)) {
+        i = 0;
+      }
+    } else if ((BannerText[i] == '^') and (BannerText[i+1] == 'G')) {
+      Disbuff.setTextColor(GREEN);
+      if (prnTMP == 0) {
+        BUFFERCOLOR = GREEN;
+      }
+      i++;
+      i++;
+      if (i>=strlen(BannerText)) {
+        i = 0;
+      }
+    } else if ((BannerText[i] == '^') and (BannerText[i+1] == 'B')) {
+      Disbuff.setTextColor(BLUE);
+      if (prnTMP == 0) {
+        BUFFERCOLOR = BLUE;
+      }
+      i++;
+      i++;
+      if (i>=strlen(BannerText)) {
+        i = 0;
+      }
+    } else if ((BannerText[i] == '^') and (BannerText[i+1] == 'Y')) {
+      Disbuff.setTextColor(YELLOW);
+      if (prnTMP == 0) {
+        BUFFERCOLOR = YELLOW;
+      }
+      i++;
+      i++;
+      if (i>=strlen(BannerText)) {
+        i = 0;
+      }
+    } else {
+      int x = font1Width*((text1Width-displayLen)/2+prnTMP);
+      Disbuff.setCursor(x, yCoord + 5*sin(x) );
+      Disbuff.print(BannerText[i]);
+      prnTMP++; // printed
+      i++;
+      if (i>=strlen(BannerText)) {
+        i = 0;
+      }
+    }
+  }
+  
+  Disbuff.pushSprite(0, 90);
+  Disbuff.deleteSprite();
 }
 
 void drawWIFIinfo() {
   char *MACbuffer = new char[WiFi.BSSIDstr().length() + 1];  //str to char
   strcpy(MACbuffer, WiFi.BSSIDstr().c_str());
   M5.Lcd.setTextColor(0x4228);
-  M5.Lcd.setCursor(93, 120);
-  M5.Lcd.printf("MAC: %*s", 17, MACbuffer);
+  M5.Lcd.setCursor((font1Width*(text1Width- 22)/2), 130); //+8 = "((( "+" )))"
+  M5.Lcd.printf("MAC: %*s", 17, MACbuffer); // 22 (5+17)
 }
 
 void drawPower() {
@@ -268,82 +366,22 @@ void drawPower() {
 void displayMainScreen() {
   M5.Lcd.clearDisplay();
 
-  drawTITLE();
+  drawBanner();
   drawWIFIinfo();
   showVolumeStatus();
   showStatus();
 }
 
 // Error screens. I'll keep 'em simple.
-void displayWiFiDownError() {
+void displayError(char *ErrorMessage) {
   M5.Lcd.clearDisplay();
-  M5.Lcd.setCursor(80, 120);
+  M5.Lcd.setCursor((font1Width*(text1Width-strlen(ErrorMessage)-8)/2), 120); //+8 = "((( "+" )))"
   M5.Lcd.setTextColor(WHITE);
   M5.Lcd.print("((");
   M5.Lcd.setTextColor(YELLOW);
   M5.Lcd.print("(");
   M5.Lcd.setTextColor(RED);
-  M5.Lcd.print(" no wi-fi connection ");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print(")");
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("))");
-}
-
-void displayStreamingError() {
-  M5.Lcd.clearDisplay();
-  M5.Lcd.setCursor(100, 120);
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("((");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print("(");
-  M5.Lcd.setTextColor(RED);
-  M5.Lcd.print(" no streaming ");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print(")");
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("))");
-}
-
-void displaySDError() {
-  M5.Lcd.clearDisplay();
-  M5.Lcd.setCursor(100, 120);
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("((");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print("(");
-  M5.Lcd.setTextColor(RED);
-  M5.Lcd.print(" SD card error ");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print(")");
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("))");
-}
-
-void displayNoSDError() {
-  M5.Lcd.clearDisplay();
-  M5.Lcd.setCursor(100, 120);
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("((");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print("(");
-  M5.Lcd.setTextColor(RED);
-  M5.Lcd.print(" SD card is missed ");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print(")");
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("))");
-}
-
-void displayWIFIConfError() {
-  M5.Lcd.clearDisplay();
-  M5.Lcd.setCursor(100, 120);
-  M5.Lcd.setTextColor(WHITE);
-  M5.Lcd.print("((");
-  M5.Lcd.setTextColor(YELLOW);
-  M5.Lcd.print("(");
-  M5.Lcd.setTextColor(RED);
-  M5.Lcd.print(" wifi.config reading error ");
+  M5.Lcd.print(ErrorMessage);
   M5.Lcd.setTextColor(YELLOW);
   M5.Lcd.print(")");
   M5.Lcd.setTextColor(WHITE);
@@ -353,12 +391,12 @@ void displayWIFIConfError() {
 // Some supplement functions
 void readWiFIconfig() {
   if (!SD.begin(4)) {
-      displaySDError();
+      displayError(SDErrorText);
       while (1); // Nowhere to go.
     }
 
   if(SD.cardType() == CARD_NONE){
-      displayNoSDError();
+      displayError(noSDErrorText);;
       while (1); // Nowhere to go.
   }
 
@@ -388,7 +426,7 @@ void readWiFIconfig() {
     }
     myFile.close();
   } else {
-    displayWIFIConfError();
+    displayError(WIFIReadingErrorText);
     while (1); // Nowhere to go.
   }
 }
@@ -401,7 +439,6 @@ void turn_off_lcd() {
 void turn_on_lcd() {
   return;
 }
-
 
 // Main streaming routine
 void play() {
@@ -468,8 +505,8 @@ void loopMP3() {
   if (mp3 != NULL) {  // To avoid crash
     if (mp3->isRunning()) {
       if (!mp3->loop()) mp3->stop();
-    } else {
-      displayStreamingError();
+    } else {;
+      displayError(noSTREAMINGText);
       bPlay = false;
 
       delay(1000);  //wait 1 second and try to reconnect
@@ -485,7 +522,7 @@ void startWIFI() {
   WiFi.begin(SSID, PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
-    displayWiFiDownError();
+    displayError(noWIFIText);
     delay(1000);
   }
 }
@@ -493,7 +530,6 @@ void startWIFI() {
 void setup() {
   M5.begin();
   M5.Power.begin(); // I've got teh POWER!
-  //M5.Power.setPowerVin(false); // No power ON when USB is disconnected
 
   delay(1000);
 
@@ -508,6 +544,11 @@ void loop() {
   loopMP3();
   drawPower();
 
+  if (millis() > nextFrame) {
+    nextFrame = millis() + Frame;
+    drawBanner();
+  }
+  
   M5.update(); // ...and UPDATE everything! Just get the buttons status.
 
   if (M5.BtnA.wasPressed()) {  // button A (((-)))
